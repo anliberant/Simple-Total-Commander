@@ -17,6 +17,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import simpletotalcommander.utils.AddNewFolderDialog;
+import simpletotalcommander.utils.RenameDialog;
 
 /**
  *
@@ -115,6 +116,11 @@ public class GUICommander extends javax.swing.JFrame {
         deleteButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons8_delete_bin_48px.png"))); // NOI18N
         deleteButton.setText("Delete");
         deleteButton.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
@@ -128,6 +134,11 @@ public class GUICommander extends javax.swing.JFrame {
         renameButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons8_rename_48px.png"))); // NOI18N
         renameButton.setText("Rename");
         renameButton.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        renameButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                renameButtonActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
@@ -422,6 +433,57 @@ public class GUICommander extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_createFileButtonActionPerformed
 
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        String selectedFile = jList1.getSelectedValue();
+        String currentPath = toFullPath(pathCache);
+        if (!selectedFile.isEmpty()) {
+            deleteDir(new File(currentPath, selectedFile));
+
+            File updateDir = new File(currentPath);
+            String updateMass[] = updateDir.list();
+            DefaultListModel updateModel = new DefaultListModel();
+            for (String s : updateMass) {
+                File tmp = new File(updateDir.getPath(), s);
+                if (!tmp.isHidden()) {
+                    if (tmp.isDirectory()) {
+                        updateModel.addElement(s);
+                    } else {
+                        updateModel.addElement("File: " + s);
+                    }
+                }
+            }
+            jList1.setModel(updateModel);
+        }
+    }//GEN-LAST:event_deleteButtonActionPerformed
+
+    private void renameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameButtonActionPerformed
+        if (!pathCache.isEmpty() & jList1.getSelectedValue() != null) {
+
+            String currentPath = toFullPath(pathCache);
+            String selectedObject = jList1.getSelectedValue();
+            RenameDialog renamer = new RenameDialog(this);
+            if (renamer.getReady()) {
+                File renameFile = new File(currentPath, selectedObject);
+                renameFile.renameTo(new File(currentPath, renamer.getNewName()));
+
+                File updateDir = new File(currentPath);
+                String updateMas[] = updateDir.list();
+                DefaultListModel updateModel = new DefaultListModel();
+                for (String s : updateMas) {
+                    File check = new File(updateDir.getPath(), s);
+                    if (!check.isHidden()) {
+                        if (check.isDirectory()) {
+                            updateModel.addElement(s);
+                        } else {
+                            updateModel.addElement("Fail: " + s);
+                        }
+                    }
+                }
+                jList1.setModel(updateModel);
+            }
+        }
+    }//GEN-LAST:event_renameButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton backButton;
     private javax.swing.JButton createDirButton;
@@ -442,4 +504,15 @@ public class GUICommander extends javax.swing.JFrame {
     private javax.swing.JLabel pathLabel;
     private javax.swing.JButton renameButton;
     // End of variables declaration//GEN-END:variables
+
+    private void deleteDir(File file) {
+        File[] fileList = file.listFiles();
+        if (fileList != null) {
+            for (File f : fileList) {
+                deleteDir(f);
+            }
+        }
+
+        file.delete();
+    }
 }
